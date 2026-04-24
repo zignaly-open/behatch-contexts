@@ -1,5 +1,6 @@
 ---
-status: pending
+status: complete
+resolved_at: 2026-04-24
 priority: p1
 issue_id: 'f1'
 source: ai
@@ -24,3 +25,10 @@ Bump 'php' to '^8.1' in this PR for contract honesty, OR explicitly accept the i
 - [ ] Decision documented on whether to fix in PR1 or defer to PR2
 - [ ] If fixed: composer.json `php` constraint updated to `^8.1` and `composer validate` passes
 - [ ] If deferred: PR2 plan explicitly includes this change and issue cross-referenced
+
+## Work Log
+
+### 2026-04-24 — Approved for Work
+**By:** Claude Triage System
+**Actions:**
+- Approved during triage; status pending → ready.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\HttpCall;
 
 use Behatch\HttpCall\Request\BrowserKit;

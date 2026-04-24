@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
@@ -11,7 +13,7 @@ use Behatch\HttpCall\Request;
 
 class RestContext extends BaseContext
 {
-    public function __construct(protected Request $request)
+    public function __construct(protected readonly Request $request)
     {
     }
 

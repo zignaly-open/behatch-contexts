@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
@@ -15,7 +17,7 @@ class BrowserContext extends BaseContext
     private string $dateFormat = 'dmYHi';
     private ?int $timerStartedAt = null;
 
-    public function __construct(private $timeout = 1)
+    public function __construct(private readonly int $timeout = 1)
     {
     }
 

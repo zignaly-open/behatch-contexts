@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
@@ -14,7 +16,7 @@ class SystemContext implements Context
     private $lastReturnCode;
     private $createdFiles = [];
 
-    public function __construct(private $root = '.')
+    public function __construct(private readonly string $root = '.')
     {
     }
 

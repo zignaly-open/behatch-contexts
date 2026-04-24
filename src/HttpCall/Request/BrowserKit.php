@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\HttpCall\Request;
 
 use OutOfBoundsException;
@@ -8,7 +10,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class BrowserKit
 {
-    public function __construct(protected Mink $mink)
+    public function __construct(protected readonly Mink $mink)
     {
     }
 

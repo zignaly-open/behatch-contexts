@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
@@ -16,7 +18,7 @@ class JsonContext extends BaseContext
 {
     protected JsonInspector $inspector;
 
-    public function __construct(protected HttpCallResultPool $httpCallResultPool, $evaluationMode = 'javascript')
+    public function __construct(protected readonly HttpCallResultPool $httpCallResultPool, string $evaluationMode = 'javascript')
     {
         $this->inspector = new JsonInspector($evaluationMode);
     }

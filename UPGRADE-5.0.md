@@ -99,6 +99,44 @@ types, removed unused catch variables, `declare(strict_types=1)` added
 to every file. Downstream subclasses of our context classes may see
 narrowed parameter/return types — adjust signatures accordingly.
 
+### `readonly` on promoted constructor properties (subclass BC note)
+
+Every context class and helper that receives its dependency via the
+constructor now uses `readonly` on the promoted property: `Request::$mink`,
+`BrowserKit::$mink`, `RestContext::$request`, `JsonContext::$httpCallResultPool`,
+`BrowserContext::$timeout`, `DebugContext::$screenshotDir`,
+`SystemContext::$root`, `HttpCallListener::$contextSupportedVoter` / `$httpCallResultPool` / `$mink`.
+
+**Subclass impact:** if your own class extends one of these and overrides
+the constructor, you must:
+
+1. Preserve the `readonly` promoted-parameter modifier when calling
+   `parent::__construct(...)`, OR
+2. Never reassign `$this->mink` (or similar) in the child class —
+   `readonly` fails at runtime on reassignment.
+
+Example downstream fix:
+
+```php
+// 4.x — worked:
+class CustomRestContext extends RestContext {
+    public function __construct(Request $request) {
+        parent::__construct($request);
+        $this->request = new CustomRequestWrapper($request); // no longer allowed
+    }
+}
+
+// 5.0 — use composition or extend the wrapper itself:
+class CustomRestContext extends RestContext {
+    public function __construct(Request $request) {
+        parent::__construct(new CustomRequestWrapper($request));
+    }
+}
+```
+
+If your fork genuinely needs mutability, remove `readonly` in a local
+patch and track the deviation separately.
+
 ## Supported versions going forward
 
 Only the 5.x line is maintained. The 4.x line is frozen.

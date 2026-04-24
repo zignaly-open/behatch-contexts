@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 priority: p3
 issue_id: 'f6'
 source: ai
@@ -8,6 +8,7 @@ scope: out_of_scope
 tags: [code-review, architecture]
 file: null
 line: null
+resolved_at: 2026-04-24
 ---
 
 ## Problem Statement
@@ -24,3 +25,10 @@ Defer to PR2. Already tracked in the plan's PR2 composer.json rewrite (adds symf
 - [ ] PR2 plan explicitly lists the transitive Symfony deps to declare
 - [ ] Declarations appear in composer.json during PR2 execution
 - [ ] `composer validate --strict` passes after PR2 changes
+
+## Work Log
+
+### 2026-04-24 — Resolved in PR #4
+**By:** Claude Triage System
+**Actions:**
+- Already resolved by PR #4 (PR2 of the upgrade series). PR2 commit 8abed63 explicitly added symfony/browser-kit ^6.4 and symfony/http-client ^6.4 to require-dev.

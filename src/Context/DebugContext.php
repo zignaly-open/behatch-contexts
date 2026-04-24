@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
@@ -13,10 +15,7 @@ use Behat\Mink\Exception\UnsupportedDriverActionException;
 
 class DebugContext extends BaseContext
 {
-    /**
-     * @param string $screenshotDir
-     */
-    public function __construct(private $screenshotDir = '.')
+    public function __construct(private readonly string $screenshotDir = '.')
     {
     }
 

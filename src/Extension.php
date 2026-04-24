@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch;
 
 use Behatch\Context\ContextClass\ClassResolver;
@@ -22,9 +24,6 @@ class Extension implements ExtensionInterface
 
     public function initialize(ExtensionManager $extensionManager): void
     {
-        if (PHP_MAJOR_VERSION === 5) {
-            @trigger_error('The behatch context extension will drop support for PHP 5 in version 4.0', E_USER_DEPRECATED);
-        }
     }
 
     public function process(ContainerBuilder $container)

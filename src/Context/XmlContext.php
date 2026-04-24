@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
 use Exception;
 use DOMException;
+use DOMNodeList;
 use RuntimeException;
-use DomNodeList;
 use Behatch\Xml\Dom;
 use Behat\Gherkin\Node\PyStringNode;
 
@@ -39,7 +41,7 @@ class XmlContext extends BaseContext
      *
      * @param string $element
      * @throws Exception
-     * @return DomNodeList
+     * @return DOMNodeList
      *
      * @Then the XML element :element should exist(s)
      */
