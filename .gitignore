@@ -5,3 +5,6 @@ bin/
 composer.lock
 composer.phar
 vendor
+
+# Ephemeral review-pipeline artifacts (hidden context files); score files themselves (PR-*.json) are tracked
+docs/scores/.review-context-PR-*.json
