@@ -1,21 +1,24 @@
 Behatch contexts
 ================
 
-[![Build status](https://travis-ci.org/Behatch/contexts.svg?branch=master)](https://travis-ci.org/Behatch/contexts)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Behatch/contexts/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Behatch/contexts/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/Behatch/contexts/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Behatch/contexts/?branch=master)
-[![SensioLabsInsight](https://insight.sensiolabs.com/projects/ed08ea06-93c2-4b90-b65b-4364302b5108/mini.png)](https://insight.sensiolabs.com/projects/ed08ea06-93c2-4b90-b65b-4364302b5108)
-
 Behatch contexts provide most common Behat tests.
+
+This is the Zignaly fork of behatch/contexts, modernized for the current
+PHP and Symfony ecosystem.
 
 Installation
 ------------
 
 This extension requires:
 
-* Behat 3+
-* Mink
-* Mink extension
+* PHP **8.4+**
+* Symfony components **6.4+** (`symfony/property-access`, `symfony/http-foundation`, `symfony/dom-crawler`)
+* `behat/behat` **3.15+**
+* `friends-of-behat/mink-extension` **2.7+**
+
+Consumers pulling via `dev-master` must also use `behat/mink-browserkit-driver`
+(not the abandoned `behat/mink-goutte-driver`) in their own `behat.yml`. See
+[UPGRADE-5.0.md](UPGRADE-5.0.md) for migration details.
 
 ### Project dependency
 
