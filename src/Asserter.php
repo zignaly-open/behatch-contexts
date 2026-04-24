@@ -2,6 +2,7 @@
 
 namespace Behatch;
 
+use Exception;
 use Behat\Mink\Exception\ExpectationException;
 
 trait Asserter
@@ -11,7 +12,7 @@ trait Asserter
         try {
             $callbable();
         }
-        catch (\Exception $e) {
+        catch (Exception) {
             return;
         }
 
@@ -27,10 +28,10 @@ trait Asserter
 
     protected function assertContains($expected, $actual, $message = null)
     {
-        $regex   = '/' . preg_quote($expected, '/') . '/ui';
+        $regex   = '/' . preg_quote((string) $expected, '/') . '/ui';
 
         $this->assert(
-            preg_match($regex, $actual) > 0,
+            preg_match($regex, (string) $actual) > 0,
             $message ?: "The string '$expected' was not found."
         );
     }
@@ -39,7 +40,7 @@ trait Asserter
     {
         $message = $message ?: "The string '$expected' was found.";
 
-        $this->not(function () use($expected, $actual) {
+        $this->not(function () use($expected, $actual): void {
                 $this->assertContains($expected, $actual);
         }, $message);
     }
@@ -68,7 +69,7 @@ trait Asserter
         );
     }
 
-    protected function assertArrayHasKey($key, $array, $message = null)
+    protected function assertArrayHasKey($key, array $array, $message = null)
     {
         $this->assert(
             isset($array[$key]),
@@ -80,7 +81,7 @@ trait Asserter
     {
         $message = $message ?: "The array has key '$key'";
 
-        $this->not(function () use($key, $array) {
+        $this->not(function () use($key, $array): void {
             $this->assertArrayHasKey($key, $array);
         }, $message);
     }
@@ -92,7 +93,7 @@ trait Asserter
 
     protected function assertFalse($value, $message = 'The value is true')
     {
-        $this->not(function () use($value) {
+        $this->not(function () use($value): void {
             $this->assertTrue($value);
         }, $message);
     }

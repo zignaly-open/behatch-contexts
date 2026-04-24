@@ -2,13 +2,16 @@
 
 namespace Behatch\Context;
 
+use Behatch\Html;
+use Behatch\Asserter;
+use Behat\MinkExtension\Context\MinkContext;
 use Behat\Behat\Context\TranslatableContext;
 use Behat\MinkExtension\Context\RawMinkContext;
 
 abstract class BaseContext extends RawMinkContext implements TranslatableContext
 {
-    use \Behatch\Html;
-    use \Behatch\Asserter;
+    use Html;
+    use Asserter;
 
     public static function getTranslationResources()
     {
@@ -40,7 +43,7 @@ abstract class BaseContext extends RawMinkContext implements TranslatableContext
 
     protected function getMinkContext()
     {
-        $context = new \Behat\MinkExtension\Context\MinkContext();
+        $context = new MinkContext();
         $context->setMink($this->getMink());
         $context->setMinkParameters($this->getMinkParameters());
 

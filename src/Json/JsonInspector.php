@@ -2,18 +2,19 @@
 
 namespace Behatch\Json;
 
+use Exception;
+use JsonSchema\SchemaStorage;
+use JsonSchema\Uri\UriRetriever;
+use JsonSchema\Uri\UriResolver;
 use JsonSchema\Validator;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 class JsonInspector
 {
-    private $evaluationMode;
+    private readonly PropertyAccessor $accessor;
 
-    private $accessor;
-
-    public function __construct($evaluationMode)
+    public function __construct(private $evaluationMode)
     {
-        $this->evaluationMode = $evaluationMode;
         $this->accessor = new PropertyAccessor(0, PropertyAccessor::THROW_ON_INVALID_INDEX | PropertyAccessor::THROW_ON_INVALID_PROPERTY_PATH);
     }
 
@@ -25,16 +26,16 @@ class JsonInspector
 
         try {
             return $json->read($expression, $this->accessor);
-        } catch (\Exception $e) {
-            throw new \Exception("Failed to evaluate expression '$expression'");
+        } catch (Exception) {
+            throw new Exception("Failed to evaluate expression '$expression'");
         }
     }
 
-    public function validate(Json $json, JsonSchema $schema)
+    public function validate(Json $json, JsonSchema $schema): bool
     {
-        $validator = new \JsonSchema\Validator();
+        $validator = new Validator();
 
-        $resolver = new \JsonSchema\SchemaStorage(new \JsonSchema\Uri\UriRetriever, new \JsonSchema\Uri\UriResolver);
+        $resolver = new SchemaStorage(new UriRetriever, new UriResolver);
         $schema->resolve($resolver);
 
         return $schema->validate($json, $validator);

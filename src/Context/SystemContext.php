@@ -2,20 +2,20 @@
 
 namespace Behatch\Context;
 
+use Exception;
+use RuntimeException;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\PyStringNode;
 
 class SystemContext implements Context
 {
-    private $root;
     private $output;
     private $lastExecutionTime;
     private $lastReturnCode;
     private $createdFiles = [];
 
-    public function __construct($root = '.')
+    public function __construct(private $root = '.')
     {
-        $this->root = $root;
     }
 
     public static function getTranslationResources()
@@ -28,7 +28,7 @@ class SystemContext implements Context
      *
      * @Given (I )execute :command
      */
-    public function iExecute($cmd)
+    public function iExecute($cmd): void
     {
         $start = microtime(true);
 
@@ -42,7 +42,7 @@ class SystemContext implements Context
      *
      * @Given (I )execute :command from project root
      */
-    public function iExecuteFromProjectRoot($cmd)
+    public function iExecuteFromProjectRoot($cmd): void
     {
         $cmd = $this->root . DIRECTORY_SEPARATOR . $cmd;
         $this->iExecute($cmd);
@@ -53,7 +53,7 @@ class SystemContext implements Context
      *
      * @Then (I )display the last command output
      */
-    public function iDumpCommandOutput()
+    public function iDumpCommandOutput(): void
     {
         echo implode(PHP_EOL, $this->output);
     }
@@ -63,9 +63,9 @@ class SystemContext implements Context
      *
      * @Then command should succeed
      */
-    public function commandShouldSucceed() {
+    public function commandShouldSucceed(): void {
         if ($this->lastReturnCode !== 0) {
-            throw new \Exception(sprintf("Command should succeed %b", $this->lastReturnCode));
+            throw new Exception(sprintf("Command should succeed %b", $this->lastReturnCode));
         };
     }
 
@@ -74,9 +74,9 @@ class SystemContext implements Context
      *
      * @Then command should fail
      */
-    public function commandShouldFail() {
+    public function commandShouldFail(): void {
         if ($this->lastReturnCode === 0) {
-            throw new \Exception(sprintf("Command should fail %b", $this->lastReturnCode));
+            throw new Exception(sprintf("Command should fail %b", $this->lastReturnCode));
         };
     }
 
@@ -85,10 +85,10 @@ class SystemContext implements Context
      *
      * @Then command should last less than :seconds seconds
      */
-    public function commandShouldLastLessThan($seconds)
+    public function commandShouldLastLessThan($seconds): void
     {
         if ($this->lastExecutionTime > $seconds) {
-            throw new \Exception(sprintf("Last command last %s which is more than %s seconds", $this->lastExecutionTime, $seconds));
+            throw new Exception(sprintf("Last command last %s which is more than %s seconds", $this->lastExecutionTime, $seconds));
         }
     }
 
@@ -97,10 +97,10 @@ class SystemContext implements Context
      *
      * @Then command should last more than :seconds seconds
      */
-    public function commandShouldMoreLessThan($seconds)
+    public function commandShouldMoreLessThan($seconds): void
     {
         if ($this->lastExecutionTime < $seconds) {
-            throw new \Exception(sprintf("Last command last %s which is less than %s seconds", $this->lastExecutionTime, $seconds));
+            throw new Exception(sprintf("Last command last %s which is less than %s seconds", $this->lastExecutionTime, $seconds));
         }
     }
 
@@ -109,20 +109,20 @@ class SystemContext implements Context
      *
      * @Then output should contain :text
      */
-    public function outputShouldContain($text)
+    public function outputShouldContain(string $text): void
     {
         $regex = '~'.$text.'~ui';
 
         $check = false;
         foreach ($this->output as $line) {
-            if (preg_match($regex, $line) === 1) {
+            if (preg_match($regex, (string) $line) === 1) {
                 $check = true;
                 break;
             }
         }
 
         if ($check === false) {
-            throw new \Exception(sprintf("The text '%s' was not found anywhere on output of command.\n%s", $text, implode("\n", $this->output)));
+            throw new Exception(sprintf("The text '%s' was not found anywhere on output of command.\n%s", $text, implode("\n", $this->output)));
         }
     }
 
@@ -131,13 +131,13 @@ class SystemContext implements Context
      *
      * @Then output should not contain :text
      */
-    public function outputShouldNotContain($text)
+    public function outputShouldNotContain(string $text): void
     {
         $regex = '~'.$text.'~ui';
 
         foreach ($this->output as $line) {
-            if (preg_match($regex, $line) === 1) {
-                throw new \Exception(sprintf("The text '%s' was found somewhere on output of command.\n%s", $text, implode("\n", $this->output)));
+            if (preg_match($regex, (string) $line) === 1) {
+                throw new Exception(sprintf("The text '%s' was found somewhere on output of command.\n%s", $text, implode("\n", $this->output)));
             }
         }
     }
@@ -145,12 +145,12 @@ class SystemContext implements Context
     /**
      * @Given output should be:
      */
-    public function outputShouldBe(PyStringNode $string)
+    public function outputShouldBe(PyStringNode $string): void
     {
         $expected = $string->getStrings();
         foreach ($this->output as $index => $line) {
             if ($line !== $expected[$index]) {
-                throw new \Exception(sprintf("instead of\n%s", implode("\n", $this->output)));
+                throw new Exception(sprintf("instead of\n%s", implode("\n", $this->output)));
             }
         }
     }
@@ -158,7 +158,7 @@ class SystemContext implements Context
     /**
      * @Given output should not be:
      */
-    public function outputShouldNotBe(PyStringNode $string)
+    public function outputShouldNotBe(PyStringNode $string): void
     {
         $expected = $string->getStrings();
 
@@ -171,7 +171,7 @@ class SystemContext implements Context
         }
 
         if ($check === false) {
-            throw new \Exception("Output should not be");
+            throw new Exception("Output should not be");
         }
     }
 
@@ -179,34 +179,34 @@ class SystemContext implements Context
      * @Given (I )create the file :filename containing:
      * @Given (I )create the file :filename contening:
      */
-    public function iCreateTheFileContaining($filename, PyStringNode $string)
+    public function iCreateTheFileContaining($filename, PyStringNode $string): void
     {
         if (!is_file($filename)) {
             file_put_contents($filename, $string);
             $this->createdFiles[] = $filename;
         }
         else {
-            throw new \RuntimeException("'$filename' already exists.");
+            throw new RuntimeException("'$filename' already exists.");
         }
     }
 
     /**
      * @Then print the content of :filename file
      */
-    public function printTheContentOfFile($filename)
+    public function printTheContentOfFile($filename): void
     {
         if (is_file($filename)) {
             echo file_get_contents($filename);
         }
         else {
-            throw new \RuntimeException("'$filename' doesn't exists.");
+            throw new RuntimeException("'$filename' doesn't exists.");
         }
     }
 
     /**
      * @AfterScenario
      */
-    public function after()
+    public function after(): void
     {
         foreach ($this->createdFiles as $filename) {
             unlink($filename);

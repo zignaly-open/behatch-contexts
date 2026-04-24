@@ -2,46 +2,34 @@
 
 namespace Behatch\HttpCall;
 
+use Behatch\HttpCall\Request\BrowserKit;
+use InvalidArgumentException;
 use Behat\Mink\Mink;
 
 class Request
 {
-    /**
-     * @var Mink
-     */
-    private $mink;
-    private $client;
+    private ?BrowserKit $client = null;
 
-    /**
-     * Request constructor.
-     * @param Mink $mink
-     */
-    public function __construct(Mink $mink)
+    public function __construct(private readonly Mink $mink)
     {
-        $this->mink = $mink;
     }
 
-    /**
-     * @param string $name
-     * @param mixed $arguments
-     * @return mixed
-     */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments): mixed
     {
         return call_user_func_array([$this->getClient(), $name], $arguments);
     }
 
-    /**
-     * @return Request\BrowserKit
-     */
-    private function getClient()
+    private function getClient(): BrowserKit
     {
-        if (null === $this->client) {
-            if ('symfony2' === $this->mink->getDefaultSessionName()) {
-                $this->client = new Request\Goutte($this->mink);
-            } else {
-                $this->client = new Request\BrowserKit($this->mink);
+        if (!$this->client instanceof BrowserKit) {
+            if ($this->mink->getDefaultSessionName() === 'symfony2') {
+                throw new InvalidArgumentException(
+                    "The 'symfony2' session alias was removed in behatch/contexts 5.0 " .
+                    "(fabpot/goutte is abandoned). Update your behat.yml to 'session: default' " .
+                    "and use behat/mink-browserkit-driver."
+                );
             }
+            $this->client = new BrowserKit($this->mink);
         }
 
         return $this->client;

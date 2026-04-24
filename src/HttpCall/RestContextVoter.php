@@ -2,11 +2,13 @@
 
 namespace Behatch\HttpCall;
 
+use Behat\Mink\Element\DocumentElement;
+
 class RestContextVoter implements ContextSupportedVoter, FilterableHttpCallResult
 {
-    public function vote(HttpCallResult $httpCallResult)
+    public function vote(HttpCallResult $httpCallResult): bool
     {
-        return $httpCallResult->getValue() instanceof \Behat\Mink\Element\DocumentElement;
+        return $httpCallResult->getValue() instanceof DocumentElement;
     }
 
     public function filter(HttpCallResult $httpCallResult)

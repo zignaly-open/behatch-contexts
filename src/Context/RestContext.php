@@ -2,6 +2,8 @@
 
 namespace Behatch\Context;
 
+use Exception;
+use DateTime;
 use Behat\Gherkin\Node\PyStringNode;
 use Behat\Gherkin\Node\TableNode;
 use Behat\Mink\Exception\ExpectationException;
@@ -9,14 +11,8 @@ use Behatch\HttpCall\Request;
 
 class RestContext extends BaseContext
 {
-    /**
-     * @var Request
-     */
-    protected $request;
-
-    public function __construct(Request $request)
+    public function __construct(protected Request $request)
     {
-        $this->request = $request;
     }
 
     /**
@@ -24,14 +20,14 @@ class RestContext extends BaseContext
      *
      * @Given I send a :method request to :url
      */
-    public function iSendARequestTo($method, $url, PyStringNode $body = null, $files = [])
+    public function iSendARequestTo($method, $url, ?PyStringNode $body = null, $files = [])
     {
         return $this->request->send(
             $method,
             $this->locatePath($url),
             [],
             $files,
-            $body !== null ? $body->getRaw() : null
+            $body instanceof PyStringNode ? $body->getRaw() : null
         );
     }
 
@@ -47,11 +43,11 @@ class RestContext extends BaseContext
 
         foreach ($data->getHash() as $row) {
             if (!isset($row['key']) || !isset($row['value'])) {
-                throw new \Exception("You must provide a 'key' and 'value' column in your table node.");
+                throw new Exception("You must provide a 'key' and 'value' column in your table node.");
             }
 
-            if (is_string($row['value']) && substr($row['value'], 0, 1) == '@') {
-                $files[$row['key']] = rtrim($this->getMinkParameter('files_path'), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.substr($row['value'],1);
+            if (is_string($row['value']) && str_starts_with($row['value'], '@')) {
+                $files[$row['key']] = rtrim((string) $this->getMinkParameter('files_path'), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.substr($row['value'],1);
             }
             else {
                 $parameters[$row['key']] = $row['value'];
@@ -82,7 +78,7 @@ class RestContext extends BaseContext
      * @Then the response should be equal to
      * @Then the response should be equal to:
      */
-    public function theResponseShouldBeEqualTo(PyStringNode $expected)
+    public function theResponseShouldBeEqualTo(PyStringNode $expected): void
     {
         $expected = str_replace('\\"', '"', $expected);
         $actual   = $this->request->getContent();
@@ -95,7 +91,7 @@ class RestContext extends BaseContext
      *
      * @Then the response should be empty
      */
-    public function theResponseShouldBeEmpty()
+    public function theResponseShouldBeEmpty(): void
     {
         $actual = $this->request->getContent();
         $message = "The response of the current page is not empty, it is: $actual";
@@ -107,10 +103,10 @@ class RestContext extends BaseContext
      *
      * @Then the header :name should be equal to :value
      */
-    public function theHeaderShouldBeEqualTo($name, $value)
+    public function theHeaderShouldBeEqualTo($name, $value): void
     {
         $actual = $this->request->getHttpHeader($name);
-        $this->assertEquals(strtolower($value), strtolower($actual),
+        $this->assertEquals(strtolower((string) $value), strtolower((string) $actual),
             "The header '$name' should be equal to '$value', but it is: '$actual'"
         );
     }
@@ -120,9 +116,9 @@ class RestContext extends BaseContext
     *
     * @Then the header :name should not be equal to :value
     */
-    public function theHeaderShouldNotBeEqualTo($name, $value) {
+    public function theHeaderShouldNotBeEqualTo(string $name, $value): void {
         $actual = $this->getSession()->getResponseHeader($name);
-        if (strtolower($value) == strtolower($actual)) {
+        if (strtolower((string) $value) === strtolower((string) $actual)) {
             throw new ExpectationException(
                 "The header '$name' is equal to '$actual'",
                 $this->getSession()->getDriver()
@@ -130,10 +126,10 @@ class RestContext extends BaseContext
         }
     }
 
-    public function theHeaderShouldBeContains($name, $value)
+    public function theHeaderShouldBeContains($name, $value): void
     {
         trigger_error(
-            sprintf('The %s function is deprecated since version 3.1 and will be removed in 4.0. Use the %s::theHeaderShouldContain function instead.', __METHOD__, __CLASS__),
+            sprintf('The %s function is deprecated since version 3.1 and will be removed in 4.0. Use the %s::theHeaderShouldContain function instead.', __METHOD__, self::class),
             E_USER_DEPRECATED
         );
         $this->theHeaderShouldContain($name, $value);
@@ -144,7 +140,7 @@ class RestContext extends BaseContext
      *
      * @Then the header :name should contain :value
      */
-    public function theHeaderShouldContain($name, $value)
+    public function theHeaderShouldContain($name, $value): void
     {
         $actual = $this->request->getHttpHeader($name);
         $this->assertContains($value, $actual,
@@ -157,7 +153,7 @@ class RestContext extends BaseContext
      *
      * @Then the header :name should not contain :value
      */
-    public function theHeaderShouldNotContain($name, $value)
+    public function theHeaderShouldNotContain($name, $value): void
     {
         $this->assertNotContains($value, $this->request->getHttpHeader($name),
             "The header '$name' contains '$value'"
@@ -169,9 +165,9 @@ class RestContext extends BaseContext
      *
      * @Then the header :name should not exist
      */
-    public function theHeaderShouldNotExist($name)
+    public function theHeaderShouldNotExist($name): void
     {
-        $this->not(function () use($name) {
+        $this->not(function () use($name): void {
             $this->theHeaderShouldExist($name);
         }, "The header '$name' exists");
     }
@@ -184,13 +180,13 @@ class RestContext extends BaseContext
     /**
      * @Then the header :name should match :regex
      */
-    public function theHeaderShouldMatch($name, $regex)
+    public function theHeaderShouldMatch($name, $regex): void
     {
         $actual = $this->request->getHttpHeader($name);
 
         $this->assertEquals(
             1,
-            preg_match($regex, $actual),
+            preg_match($regex, (string) $actual),
             "The header '$name' should match '$regex', but it is: '$actual'"
         );
     }
@@ -198,10 +194,10 @@ class RestContext extends BaseContext
     /**
      * @Then the header :name should not match :regex
      */
-    public function theHeaderShouldNotMatch($name, $regex)
+    public function theHeaderShouldNotMatch($name, $regex): void
     {
         $this->not(
-            function () use ($name, $regex) {
+            function () use ($name, $regex): void {
                 $this->theHeaderShouldMatch($name, $regex);
             },
             "The header '$name' should not match '$regex'"
@@ -213,10 +209,10 @@ class RestContext extends BaseContext
      *
      * @Then the response should expire in the future
      */
-    public function theResponseShouldExpireInTheFuture()
+    public function theResponseShouldExpireInTheFuture(): void
     {
-        $date = new \DateTime($this->request->getHttpRawHeader('Date')[0]);
-        $expires = new \DateTime($this->request->getHttpRawHeader('Expires')[0]);
+        $date = new DateTime($this->request->getHttpRawHeader('Date')[0]);
+        $expires = new DateTime($this->request->getHttpRawHeader('Expires')[0]);
 
         $this->assertSame(1, $expires->diff($date)->invert,
             sprintf('The response doesn\'t expire in the future (%s)', $expires->format(DATE_ATOM))
@@ -228,7 +224,7 @@ class RestContext extends BaseContext
      *
      * @Then I add :name header equal to :value
      */
-    public function iAddHeaderEqualTo($name, $value)
+    public function iAddHeaderEqualTo($name, $value): void
     {
         $this->request->setHttpHeader($name, $value);
     }
@@ -236,11 +232,11 @@ class RestContext extends BaseContext
     /**
      * @Then the response should be encoded in :encoding
      */
-    public function theResponseShouldBeEncodedIn($encoding)
+    public function theResponseShouldBeEncodedIn($encoding): void
     {
         $content = $this->request->getContent();
         if (!mb_check_encoding($content, $encoding)) {
-            throw new \Exception("The response is not encoded in $encoding");
+            throw new Exception("The response is not encoded in $encoding");
         }
 
         $this->theHeaderShouldContain('Content-Type', "charset=$encoding");
@@ -249,7 +245,7 @@ class RestContext extends BaseContext
     /**
      * @Then print last response headers
      */
-    public function printLastResponseHeaders()
+    public function printLastResponseHeaders(): void
     {
         $text = '';
         $headers = $this->request->getHttpHeaders();
@@ -264,14 +260,14 @@ class RestContext extends BaseContext
     /**
      * @Then print the corresponding curl command
      */
-    public function printTheCorrespondingCurlCommand()
+    public function printTheCorrespondingCurlCommand(): void
     {
         $method = $this->request->getMethod();
         $url = $this->request->getUri();
 
         $headers = '';
         foreach ($this->request->getServer() as $name => $value) {
-            if (substr($name, 0, 5) !== 'HTTP_' && $name !== 'HTTPS') {
+            if (!str_starts_with((string) $name, 'HTTP_') && $name !== 'HTTPS') {
                 $headers .= " -H '$name: $value'";
             }
         }

@@ -2,6 +2,8 @@
 
 namespace Behatch;
 
+use Behatch\Context\ContextClass\ClassResolver;
+use Behat\Testwork\ServiceContainer\ServiceProcessor;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -18,7 +20,7 @@ class Extension implements ExtensionInterface
         return 'behatch';
     }
 
-    public function initialize(ExtensionManager $extensionManager)
+    public function initialize(ExtensionManager $extensionManager): void
     {
         if (PHP_MAJOR_VERSION === 5) {
             @trigger_error('The behatch context extension will drop support for PHP 5 in version 4.0', E_USER_DEPRECATED);
@@ -29,7 +31,7 @@ class Extension implements ExtensionInterface
     {
     }
 
-    public function load(ContainerBuilder $container, array $config)
+    public function load(ContainerBuilder $container, array $config): void
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/Resources/services'));
         $loader->load('http_call.yml');
@@ -42,16 +44,16 @@ class Extension implements ExtensionInterface
     {
     }
 
-    private function loadClassResolver(ContainerBuilder $container)
+    private function loadClassResolver(ContainerBuilder $container): void
     {
-        $definition = new Definition('Behatch\Context\ContextClass\ClassResolver');
+        $definition = new Definition(ClassResolver::class);
         $definition->addTag(ContextExtension::CLASS_RESOLVER_TAG);
         $container->setDefinition('behatch.class_resolver', $definition);
     }
 
-    private function loadHttpCallListener(ContainerBuilder $container)
+    private function loadHttpCallListener(ContainerBuilder $container): void
     {
-        $processor = new \Behat\Testwork\ServiceContainer\ServiceProcessor;
+        $processor = new ServiceProcessor;
         $references = $processor->findAndSortTaggedServices($container, 'behatch.context_voter');
         $definition = $container->getDefinition('behatch.context_supported.voter');
 
@@ -60,7 +62,7 @@ class Extension implements ExtensionInterface
         }
     }
 
-    public function getCompilerPasses()
+    public function getCompilerPasses(): array
     {
         return [];
     }

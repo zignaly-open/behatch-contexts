@@ -2,6 +2,7 @@
 
 namespace Behatch\Context;
 
+use Exception;
 use Behat\Gherkin\Node\TableNode;
 
 class TableContext extends BaseContext
@@ -11,7 +12,7 @@ class TableContext extends BaseContext
      *
      * @Then the columns schema of the :table table should match:
      */
-    public function theColumnsSchemaShouldMatch($table, TableNode $text)
+    public function theColumnsSchemaShouldMatch($table, TableNode $text): void
     {
         $columnsSelector = "$table thead tr th";
         $columns = $this->getSession()->getPage()->findAll('css', $columnsSelector);
@@ -28,7 +29,7 @@ class TableContext extends BaseContext
      *
      * @Then (I )should see :count column(s) in the :table table
      */
-    public function iShouldSeeColumnsInTheTable($count, $table)
+    public function iShouldSeeColumnsInTheTable($count, $table): void
     {
         $columnsSelector = "$table thead tr th";
         $columns = $this->getSession()->getPage()->findAll('css', $columnsSelector);
@@ -41,7 +42,7 @@ class TableContext extends BaseContext
      *
      * @Then (I )should see :count rows in the :index :table table
      */
-    public function iShouldSeeRowsInTheNthTable($count, $index, $table)
+    public function iShouldSeeRowsInTheNthTable($count, $index, $table): void
     {
         $actual = $this->countElements('tbody tr', $index, $table);
         $this->assertEquals($count, $actual);
@@ -52,7 +53,7 @@ class TableContext extends BaseContext
      *
      * @Then (I )should see :count row(s) in the :table table
      */
-    public function iShouldSeeRowsInTheTable($count, $table)
+    public function iShouldSeeRowsInTheTable($count, $table): void
     {
         $this->iShouldSeeRowsInTheNthTable($count, 1, $table);
     }
@@ -62,13 +63,13 @@ class TableContext extends BaseContext
      *
      * @Then the data in the :index row of the :table table should match:
      */
-    public function theDataOfTheRowShouldMatch($index, $table, TableNode $text)
+    public function theDataOfTheRowShouldMatch($index, $table, TableNode $text): void
     {
         $rowsSelector = "$table tbody tr";
         $rows = $this->getSession()->getPage()->findAll('css', $rowsSelector);
 
         if (!isset($rows[$index - 1])) {
-            throw new \Exception("The row $index was not found in the '$table' table");
+            throw new Exception("The row $index was not found in the '$table' table");
         }
 
         $cells = (array)$rows[$index - 1]->findAll('css', 'td');
@@ -78,7 +79,7 @@ class TableContext extends BaseContext
 
         foreach (array_keys($hash) as $columnName) {
             // Extract index from column. ex "col2" -> 2
-            preg_match('/^col(?P<index>\d+)$/', $columnName, $matches);
+            preg_match('/^col(?P<index>\d+)$/', (string) $columnName, $matches);
             $index = (int) $matches['index'] - 1;
 
             $this->assertEquals($hash[$columnName], $cells[$index]->getText());
@@ -90,20 +91,20 @@ class TableContext extends BaseContext
      *
      * @Then the :colIndex column of the :rowIndex row in the :table table should contain :text
      */
-    public function theStColumnOfTheStRowInTheTableShouldContain($colIndex, $rowIndex, $table, $text)
+    public function theStColumnOfTheStRowInTheTableShouldContain($colIndex, $rowIndex, $table, $text): void
     {
         $rowSelector = "$table tbody tr";
         $rows = $this->getSession()->getPage()->findAll('css', $rowSelector);
 
         if (!isset($rows[$rowIndex - 1])) {
-            throw new \Exception("The row $rowIndex was not found in the '$table' table");
+            throw new Exception("The row $rowIndex was not found in the '$table' table");
         }
 
         $row = $rows[$rowIndex - 1];
         $cols = $row->findAll('css', 'td');
 
         if (!isset($cols[$colIndex - 1])) {
-            throw new \Exception("The column $colIndex was not found in the row $rowIndex of the '$table' table");
+            throw new Exception("The column $colIndex was not found in the row $rowIndex of the '$table' table");
         }
 
         $actual = $cols[$colIndex - 1]->getText();

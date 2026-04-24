@@ -1,26 +1,28 @@
 {
     "name": "behatch/contexts",
     "description": "Behatch contexts",
-    "keywords": ["BDD", "Behat", "Symfony2", "Context"],
+    "keywords": ["BDD", "Behat", "Context"],
     "type": "library",
     "license": "beerware",
 
     "require": {
-        "php": ">=5.5",
-        "behat/behat": "^3.0.13",
-        "friends-of-behat/mink-extension": "^2.3.1",
-        "justinrainbow/json-schema": "^5.0",
+        "php": "^8.4",
+        "behat/behat": "^3.15",
+        "friends-of-behat/mink-extension": "^2.7",
+        "justinrainbow/json-schema": "^6.5",
         "symfony/property-access": "^6.4.29",
         "symfony/http-foundation": "^6.4.29",
         "symfony/dom-crawler": "^6.4.29"
     },
 
     "require-dev": {
-        "behat/mink-goutte-driver": "^1.1",
-        "guzzlehttp/guzzle": "^6.3",
-        "behat/mink-selenium2-driver": "^1.4@dev",
-        "atoum/atoum": "^2.8|^3.0",
-        "fabpot/goutte": "^3.2"
+        "atoum/atoum": "^4.4",
+        "behat/mink-browserkit-driver": "^2.3",
+        "behat/mink-selenium2-driver": "^1.6",
+        "guzzlehttp/guzzle": "^7.9",
+        "symfony/browser-kit": "^6.4",
+        "symfony/http-client": "^6.4",
+        "rector/rector": "^2"
     },
 
     "autoload": {
@@ -39,7 +41,7 @@
 
     "extra": {
         "branch-alias": {
-            "dev-master": "3.0.x-dev"
+            "dev-master": "5.0.x-dev"
         }
     }
 }
