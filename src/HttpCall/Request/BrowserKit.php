@@ -1,63 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\HttpCall\Request;
 
-use Behat\Mink\Driver\Goutte\Client as GoutteClient;
+use OutOfBoundsException;
 use Behat\Mink\Mink;
-use Symfony\Component\BrowserKit\Client as BrowserKitClient;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class BrowserKit
 {
-    protected $mink;
-
-    public function __construct(Mink $mink)
+    public function __construct(protected readonly Mink $mink)
     {
-        $this->mink = $mink;
     }
 
-    public function getMethod()
+    public function getMethod(): string
     {
-        return $this->getRequest()
-            ->getMethod();
+        return $this->getRequest()->getMethod();
     }
 
-    public function getUri()
+    public function getUri(): string
     {
-        return $this->getRequest()
-            ->getUri();
+        return $this->getRequest()->getUri();
     }
 
-    public function getServer()
+    public function getServer(): array
     {
-        return $this->getRequest()
-            ->getServer();
+        return $this->getRequest()->getServer();
     }
 
-    public function getParameters()
+    public function getParameters(): array
     {
-        return $this->getRequest()
-            ->getParameters();
+        return $this->getRequest()->getParameters();
     }
 
     protected function getRequest()
     {
-        $client = $this->mink->getSession()->getDriver()->getClient();
-        // BC layer for BrowserKit 2.2.x and older
-        if (method_exists($client, 'getInternalRequest')) {
-            $request = $client->getInternalRequest();
-        } else {
-            $request = $client->getRequest();
-        }
-        return $request;
+        return $this->mink->getSession()->getDriver()->getClient()->getInternalRequest();
     }
 
-    public function getContent()
+    public function getContent(): string
     {
         return $this->mink->getSession()->getPage()->getContent();
     }
 
-    public function send($method, $url, $parameters = [], $files = [], $content = null, $headers = [])
+    public function send(string $method, string $url, array $parameters = [], array $files = [], ?string $content = null, array $headers = [])
     {
         foreach ($files as $originalName => &$file) {
             if (is_string($file)) {
@@ -75,30 +62,21 @@ class BrowserKit
         return $this->mink->getSession()->getPage();
     }
 
-    public function setHttpHeader($name, $value)
+    public function setHttpHeader(string $name, string $value): void
     {
-        $client = $this->mink->getSession()->getDriver()->getClient();
-        // Goutte\Client
-        if (method_exists($client, 'setHeader')) {
-            $client->setHeader($name, $value);
-        } else {
-            // Symfony\Component\BrowserKit\Client
+        // Mirrors Behat\Mink\Driver\BrowserKitDriver::setRequestHeader header-name mapping:
+        // CONTENT_* are not prefixed with HTTP_ in PHP when building $_SERVER.
+        $contentHeaders = ['CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true];
+        $name = str_replace('-', '_', strtoupper($name));
 
-            /* taken from Behat\Mink\Driver\BrowserKitDriver::setRequestHeader */
-            $contentHeaders = ['CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true];
-            $name = str_replace('-', '_', strtoupper($name));
-
-            // CONTENT_* are not prefixed with HTTP_ in PHP when building $_SERVER
-            if (!isset($contentHeaders[$name])) {
-                $name = 'HTTP_' . $name;
-            }
-            /* taken from Behat\Mink\Driver\BrowserKitDriver::setRequestHeader */
-
-            $client->setServerParameter($name, $value);
+        if (!isset($contentHeaders[$name])) {
+            $name = 'HTTP_' . $name;
         }
+
+        $this->mink->getSession()->getDriver()->getClient()->setServerParameter($name, $value);
     }
 
-    public function getHttpHeaders()
+    public function getHttpHeaders(): array
     {
         return array_change_key_case(
             $this->mink->getSession()->getResponseHeaders(),
@@ -106,39 +84,25 @@ class BrowserKit
         );
     }
 
-    public function getHttpHeader($name)
+    public function getHttpHeader(string $name): string
     {
-        $values = $this->getHttpRawHeader($name);
-
-        return implode(', ', $values);
+        return implode(', ', $this->getHttpRawHeader($name));
     }
 
-    public function getHttpRawHeader($name)
+    public function getHttpRawHeader(string $name): array
     {
         $name = strtolower($name);
         $headers = $this->getHttpHeaders();
 
-        if (isset($headers[$name])) {
-            $value = $headers[$name];
-            if (!is_array($headers[$name])) {
-                $value = [$headers[$name]];
-            }
-        } else {
-            throw new \OutOfBoundsException(
-                "The header '$name' doesn't exist"
-            );
+        if (!isset($headers[$name])) {
+            throw new OutOfBoundsException("The header '$name' doesn't exist");
         }
-        return $value;
+
+        return is_array($headers[$name]) ? $headers[$name] : [$headers[$name]];
     }
 
-    protected function resetHttpHeaders()
+    protected function resetHttpHeaders(): void
     {
-        /** @var GoutteClient|BrowserKitClient $client */
-        $client = $this->mink->getSession()->getDriver()->getClient();
-
-        $client->setServerParameters([]);
-        if ($client instanceof GoutteClient) {
-            $client->restart();
-        }
+        $this->mink->getSession()->getDriver()->getClient()->setServerParameters([]);
     }
 }

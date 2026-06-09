@@ -1,22 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Json;
 
+use Exception;
 use JsonSchema\SchemaStorage;
 use JsonSchema\Validator;
 
 class JsonSchema extends Json
 {
-    private $uri;
-
-    public function __construct($content, $uri = null)
+    public function __construct($content, private $uri = null)
     {
-        $this->uri = $uri;
-
         parent::__construct($content);
     }
 
-    public function resolve(SchemaStorage $resolver)
+    public function resolve(SchemaStorage $resolver): static
     {
         if (!$this->hasUri()) {
             return $this;
@@ -27,7 +26,7 @@ class JsonSchema extends Json
         return $this;
     }
 
-    public function validate(Json $json, Validator $validator)
+    public function validate(Json $json, Validator $validator): bool
     {
         $validator->check($json->getContent(), $this->getContent());
 
@@ -36,13 +35,13 @@ class JsonSchema extends Json
             foreach ($validator->getErrors() as $error) {
                 $msg .= sprintf("  - [%s] %s".PHP_EOL, $error['property'], $error['message']);
             }
-            throw new \Exception($msg);
+            throw new Exception($msg);
         }
 
         return true;
     }
 
-    private function hasUri()
+    private function hasUri(): bool
     {
         return null !== $this->uri;
     }

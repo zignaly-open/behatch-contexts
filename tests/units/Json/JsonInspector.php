@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Tests\Units\Json;
 
-use JsonSchema\Validator;
-use JsonSchema\Uri\UriRetriever;
-use Symfony\Component\PropertyAccess\PropertyAccess;
+use atoum;
+use Behatch\Json\Json;
+use mock\Behatch\Json\JsonSchema;
 
-class JsonInspector extends \atoum
+class JsonInspector extends atoum
 {
-    public function test_evaluate()
+    public function test_evaluate(): void
     {
-        $json = new \Behatch\Json\Json('{ "foo": { "bar": "foobar" } }');
+        $json = new Json('{ "foo": { "bar": "foobar" } }');
         $inspector = $this->newTestedInstance('php');
         $result = $inspector->evaluate($json, 'foo.bar');
 
@@ -18,20 +20,20 @@ class JsonInspector extends \atoum
             ->isEqualTo('foobar');
     }
 
-    public function test_evaluate_invalid()
+    public function test_evaluate_invalid(): void
     {
-        $json = new \Behatch\Json\Json('{}');
+        $json = new Json('{}');
         $inspector = $this->newTestedInstance('php');
 
-        $this->exception(function () use($json, $inspector) {
+        $this->exception(function () use($json, $inspector): void {
             $inspector->evaluate($json, 'foo.bar');
         })
         ->hasMessage("Failed to evaluate expression 'foo.bar'");
     }
 
-    public function test_evaluate_javascript_mode()
+    public function test_evaluate_javascript_mode(): void
     {
-        $json = new \Behatch\Json\Json('{ "foo": { "bar": "foobar" } }');
+        $json = new Json('{ "foo": { "bar": "foobar" } }');
         $inspector = $this->newTestedInstance('javascript');
         $result = $inspector->evaluate($json, 'foo->bar');
 
@@ -39,9 +41,9 @@ class JsonInspector extends \atoum
             ->isEqualTo('foobar');
     }
 
-    public function test_evaluate_php_mode()
+    public function test_evaluate_php_mode(): void
     {
-        $json = new \Behatch\Json\Json('{ "foo": { "bar": "foobar" } }');
+        $json = new Json('{ "foo": { "bar": "foobar" } }');
         $inspector = $this->newTestedInstance('php');
         $result = $inspector->evaluate($json, 'foo.bar');
 
@@ -49,11 +51,11 @@ class JsonInspector extends \atoum
             ->isEqualTo('foobar');
     }
 
-    public function test_validate()
+    public function test_validate(): void
     {
-        $json = new \Behatch\Json\Json('{ "foo": { "bar": "foobar" } }');
+        $json = new Json('{ "foo": { "bar": "foobar" } }');
         $inspector = $this->newTestedInstance('php');
-        $schema = new \mock\Behatch\Json\JsonSchema('{}');
+        $schema = new JsonSchema('{}');
 
         $result = $inspector->validate($json, $schema);
 

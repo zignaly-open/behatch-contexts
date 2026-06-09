@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch;
 
-use Behat\MinkExtension\Context\RawMinkContext;
+use Exception;
 
 trait Html
 {
     abstract protected function getSession($name = null);
 
-    protected function countElements($element, $index, $parent)
+    protected function countElements($element, $index, $parent): int
     {
         $page = $this->getSession()->getPage();
 
         $parents = $page->findAll('css', $parent);
         if (!isset($parents[$index - 1])) {
-            throw new \Exception("The $index element '$parent' was not found anywhere in the page");
+            throw new Exception("The $index element '$parent' was not found anywhere in the page");
         }
 
         $elements = $parents[$index - 1]->findAll('css', $element);
@@ -28,7 +30,7 @@ trait Html
         $nodes = $page->findAll($selector, $locator);
 
         if (!isset($nodes[$index - 1])) {
-            throw new \Exception("The $index $selector '$locator' was not found anywhere in the page");
+            throw new Exception("The $index $selector '$locator' was not found anywhere in the page");
         }
 
         return $nodes[$index - 1];

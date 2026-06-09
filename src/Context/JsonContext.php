@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Behatch\Context;
 
+use Exception;
+use RuntimeException;
 use Behat\Gherkin\Node\PyStringNode;
 
 use Behat\Gherkin\Node\TableNode;
-use Behat\Mink\Exception\ExpectationException;
 use Behatch\Json\Json;
 use Behatch\Json\JsonSchema;
 use Behatch\Json\JsonInspector;
@@ -13,14 +16,11 @@ use Behatch\HttpCall\HttpCallResultPool;
 
 class JsonContext extends BaseContext
 {
-    protected $inspector;
+    protected JsonInspector $inspector;
 
-    protected $httpCallResultPool;
-
-    public function __construct(HttpCallResultPool $httpCallResultPool, $evaluationMode = 'javascript')
+    public function __construct(protected readonly HttpCallResultPool $httpCallResultPool, string $evaluationMode = 'javascript')
     {
         $this->inspector = new JsonInspector($evaluationMode);
-        $this->httpCallResultPool = $httpCallResultPool;
     }
 
     /**
@@ -28,7 +28,7 @@ class JsonContext extends BaseContext
      *
      * @Then the response should be in JSON
      */
-    public function theResponseShouldBeInJson()
+    public function theResponseShouldBeInJson(): void
     {
         $this->getJson();
     }
@@ -38,10 +38,10 @@ class JsonContext extends BaseContext
      *
      * @Then the response should not be in JSON
      */
-    public function theResponseShouldNotBeInJson()
+    public function theResponseShouldNotBeInJson(): void
     {
         $this->not(
-            [$this, 'theResponseShouldBeInJson'],
+            $this->theResponseShouldBeInJson(...),
             'The response is in JSON'
         );
     }
@@ -51,14 +51,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be equal to :text
      */
-    public function theJsonNodeShouldBeEqualTo($node, $text)
+    public function theJsonNodeShouldBeEqualTo($node, $text): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if ($actual != $text) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf("The node value is '%s'", json_encode($actual))
             );
         }
@@ -69,7 +69,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON nodes should be equal to:
      */
-    public function theJsonNodesShouldBeEqualTo(TableNode $nodes)
+    public function theJsonNodesShouldBeEqualTo(TableNode $nodes): void
     {
         foreach ($nodes->getRowsHash() as $node => $text) {
             $this->theJsonNodeShouldBeEqualTo($node, $text);
@@ -81,14 +81,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should match :pattern
      */
-    public function theJsonNodeShouldMatch($node, $pattern)
+    public function theJsonNodeShouldMatch($node, $pattern): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
-        if (preg_match($pattern, $actual) === 0) {
-            throw new \Exception(
+        if (preg_match($pattern, (string) $actual) === 0) {
+            throw new Exception(
                 sprintf("The node value is '%s'", json_encode($actual))
             );
         }
@@ -99,14 +99,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be null
      */
-    public function theJsonNodeShouldBeNull($node)
+    public function theJsonNodeShouldBeNull($node): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if (null !== $actual) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf('The node value is `%s`', json_encode($actual))
             );
         }
@@ -117,11 +117,9 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should not be null
      */
-    public function theJsonNodeShouldNotBeNull($node)
+    public function theJsonNodeShouldNotBeNull(string $node): void
     {
-        $this->not(function () use ($node) {
-            return $this->theJsonNodeShouldBeNull($node);
-        }, sprintf('The node %s should not be null', $node));
+        $this->not(fn() => $this->theJsonNodeShouldBeNull($node), sprintf('The node %s should not be null', $node));
     }
 
     /**
@@ -129,14 +127,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be true
      */
-    public function theJsonNodeShouldBeTrue($node)
+    public function theJsonNodeShouldBeTrue($node): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if (true !== $actual) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf('The node value is `%s`', json_encode($actual))
             );
         }
@@ -147,14 +145,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be false
      */
-    public function theJsonNodeShouldBeFalse($node)
+    public function theJsonNodeShouldBeFalse($node): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if (false !== $actual) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf('The node value is `%s`', json_encode($actual))
             );
         }
@@ -165,14 +163,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be equal to the string :text
      */
-    public function theJsonNodeShouldBeEqualToTheString($node, $text)
+    public function theJsonNodeShouldBeEqualToTheString($node, $text): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if ($actual !== $text) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf('The node value is `%s`', json_encode($actual))
             );
         }
@@ -183,14 +181,14 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should be equal to the number :number
      */
-    public function theJsonNodeShouldBeEqualToTheNumber($node, $number)
+    public function theJsonNodeShouldBeEqualToTheNumber($node, $number): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
         if ($actual !== (float) $number && $actual !== (int) $number) {
-            throw new \Exception(
+            throw new Exception(
                 sprintf('The node value is `%s`', json_encode($actual))
             );
         }
@@ -201,13 +199,13 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should have :count element(s)
      */
-    public function theJsonNodeShouldHaveElements($node, $count)
+    public function theJsonNodeShouldHaveElements($node, $count): void
     {
         $json = $this->getJson();
 
         $actual = $this->inspector->evaluate($json, $node);
 
-        $this->assertSame($count, sizeof((array) $actual));
+        $this->assertSame($count, count((array) $actual));
     }
 
     /**
@@ -215,7 +213,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should contain :text
      */
-    public function theJsonNodeShouldContain($node, $text)
+    public function theJsonNodeShouldContain($node, $text): void
     {
         $json = $this->getJson();
 
@@ -229,7 +227,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON nodes should contain:
      */
-    public function theJsonNodesShouldContain(TableNode $nodes)
+    public function theJsonNodesShouldContain(TableNode $nodes): void
     {
         foreach ($nodes->getRowsHash() as $node => $text) {
             $this->theJsonNodeShouldContain($node, $text);
@@ -241,7 +239,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :node should not contain :text
      */
-    public function theJsonNodeShouldNotContain($node, $text)
+    public function theJsonNodeShouldNotContain($node, $text): void
     {
         $json = $this->getJson();
 
@@ -255,7 +253,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON nodes should not contain:
      */
-    public function theJsonNodesShouldNotContain(TableNode $nodes)
+    public function theJsonNodesShouldNotContain(TableNode $nodes): void
     {
         foreach ($nodes->getRowsHash() as $node => $text) {
             $this->theJsonNodeShouldNotContain($node, $text);
@@ -273,8 +271,8 @@ class JsonContext extends BaseContext
 
         try {
             $node = $this->inspector->evaluate($json, $name);
-        } catch (\Exception $e) {
-            throw new \Exception("The node '$name' does not exist.");
+        } catch (Exception) {
+            throw new Exception("The node '$name' does not exist.");
         }
         return $node;
     }
@@ -284,17 +282,15 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON node :name should not exist
      */
-    public function theJsonNodeShouldNotExist($name)
+    public function theJsonNodeShouldNotExist($name): void
     {
-        $this->not(function () use ($name) {
-            return $this->theJsonNodeShouldExist($name);
-        }, "The node '$name' exists.");
+        $this->not(fn() => $this->theJsonNodeShouldExist($name), "The node '$name' exists.");
     }
 
     /**
      * @Then the JSON should be valid according to this schema:
      */
-    public function theJsonShouldBeValidAccordingToThisSchema(PyStringNode $schema)
+    public function theJsonShouldBeValidAccordingToThisSchema(PyStringNode $schema): void
     {
         $this->inspector->validate(
             $this->getJson(),
@@ -305,17 +301,15 @@ class JsonContext extends BaseContext
     /**
      * @Then the JSON should be invalid according to this schema:
      */
-    public function theJsonShouldBeInvalidAccordingToThisSchema(PyStringNode $schema)
+    public function theJsonShouldBeInvalidAccordingToThisSchema(PyStringNode $schema): void
     {
-        $this->not(function () use ($schema) {
-            return $this->theJsonShouldBeValidAccordingToThisSchema($schema);
-        }, 'Expected to receive invalid json, got valid one');
+        $this->not(fn() => $this->theJsonShouldBeValidAccordingToThisSchema($schema), 'Expected to receive invalid json, got valid one');
     }
 
     /**
      * @Then the JSON should be valid according to the schema :filename
      */
-    public function theJsonShouldBeValidAccordingToTheSchema($filename)
+    public function theJsonShouldBeValidAccordingToTheSchema($filename): void
     {
         $this->checkSchemaFile($filename);
 
@@ -331,26 +325,24 @@ class JsonContext extends BaseContext
     /**
      * @Then the JSON should be invalid according to the schema :filename
      */
-    public function theJsonShouldBeInvalidAccordingToTheSchema($filename)
+    public function theJsonShouldBeInvalidAccordingToTheSchema($filename): void
     {
         $this->checkSchemaFile($filename);
 
-        $this->not(function () use ($filename) {
-            return $this->theJsonShouldBeValidAccordingToTheSchema($filename);
-        }, "The schema was valid");
+        $this->not(fn() => $this->theJsonShouldBeValidAccordingToTheSchema($filename), "The schema was valid");
     }
 
     /**
      * @Then the JSON should be equal to:
      */
-    public function theJsonShouldBeEqualTo(PyStringNode $content)
+    public function theJsonShouldBeEqualTo(PyStringNode $content): void
     {
         $actual = $this->getJson();
 
         try {
             $expected = new Json($content);
-        } catch (\Exception $e) {
-            throw new \Exception('The expected JSON is not a valid');
+        } catch (Exception) {
+            throw new Exception('The expected JSON is not a valid');
         }
 
         $this->assertSame(
@@ -363,7 +355,7 @@ class JsonContext extends BaseContext
     /**
      * @Then print last JSON response
      */
-    public function printLastJsonResponse()
+    public function printLastJsonResponse(): void
     {
         echo $this->getJson()
             ->encode();
@@ -374,7 +366,7 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON should be valid according to swagger :dumpPath dump schema :schemaName
      */
-    public function theJsonShouldBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName)
+    public function theJsonShouldBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName): void
     {
         $this->checkSchemaFile($dumpPath);
 
@@ -396,24 +388,22 @@ class JsonContext extends BaseContext
      *
      * @Then the JSON should not be valid according to swagger :dumpPath dump schema :schemaName
      */
-    public function theJsonShouldNotBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName)
+    public function theJsonShouldNotBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName): void
     {
-        $this->not(function () use ($dumpPath, $schemaName) {
-            return $this->theJsonShouldBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName);
-        }, 'JSON Schema matches but it should not');
+        $this->not(fn() => $this->theJsonShouldBeValidAccordingToTheSwaggerSchema($dumpPath, $schemaName), 'JSON Schema matches but it should not');
     }
 
 
 
-    protected function getJson()
+    protected function getJson(): Json
     {
         return new Json($this->httpCallResultPool->getResult()->getValue());
     }
 
-    private function checkSchemaFile($filename)
+    private function checkSchemaFile($filename): void
     {
         if (false === is_file($filename)) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'The JSON schema doesn\'t exist'
             );
         }

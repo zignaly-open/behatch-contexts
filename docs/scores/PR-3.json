@@ -1,0 +1,153 @@
+{
+  "pr_number": 3,
+  "pr_title": "security(http-foundation): pin Symfony to ^6.4.29 for GHSA-3rg7-wf37-54rm + GHSA-mrqx-rp3w-jpjp",
+  "created_at": "2026-04-24T12:28:06Z",
+  "updated_at": "2026-04-24T12:28:06Z",
+  "ai_snapshot": {
+    "created_at": "2026-04-24T12:28:06Z",
+    "grade": "D",
+    "raw": 17,
+    "findings_count": 8,
+    "breakdown": {
+      "critical": 0,
+      "high": 2,
+      "medium": 1,
+      "low": 5
+    }
+  },
+  "total": {
+    "grade": "D",
+    "raw": 17,
+    "weighted": 17.0,
+    "findings_count": 8,
+    "in_scope_count": 3,
+    "breakdown": {
+      "critical": 0,
+      "high": 2,
+      "medium": 1,
+      "low": 5
+    }
+  },
+  "iterations": {
+    "ai_review": 1,
+    "human_review": 0
+  },
+  "exit_condition": {
+    "met": false,
+    "reason": "1 P1 (0 critical, 1 high) findings remain open"
+  },
+  "findings": [
+    {
+      "issue_id": "f1",
+      "title": "Stale PHP constraint (php: >=5.5) inconsistent with Symfony 6.4 requiring ^8.1",
+      "severity": "high",
+      "status": "open",
+      "source": "ai",
+      "author": "architecture-strategist + security-sentinel",
+      "scope": "in_scope",
+      "file": "composer.json",
+      "line": 9,
+      "category": "architecture",
+      "description": "composer.json still declares php: >=5.5 while ^6.4.29 transitively requires PHP ^8.1. Composer resolution will fail on PHP <8.1 via the Symfony dep, so the php constraint is a documentation lie. Could be fixed in PR1 (one-line) or deferred to PR2.",
+      "recommendation": "Bump 'php' to '^8.1' in this PR for contract honesty, OR explicitly accept the inconsistency and defer to PR2's broader PHP 8.4 bump."
+    },
+    {
+      "issue_id": "f2",
+      "title": "Missing UPGRADE / CHANGELOG note for the Symfony floor raise",
+      "severity": "high",
+      "status": "open",
+      "source": "ai",
+      "author": "architecture-strategist",
+      "scope": "out_of_scope",
+      "file": null,
+      "line": null,
+      "category": "documentation",
+      "description": "Dropping Symfony 2/3/4/5 support is a BC break in the library's public dependency contract. Repo already has UPGRADE-3.0.md and UPGRADE-4.0.md but no entry for this change. No CHANGELOG.md exists.",
+      "recommendation": "Add a brief UPGRADE note (or create CHANGELOG.md) stating: new Symfony floor, security rationale (link GHSA IDs), downstream action required if they pinned Symfony <6.4."
+    },
+    {
+      "issue_id": "f3",
+      "title": "Consider adding a 'conflict' block for belt-and-suspenders against downstream override",
+      "severity": "medium",
+      "status": "open",
+      "source": "ai",
+      "author": "security-sentinel",
+      "scope": "out_of_scope",
+      "file": "composer.json",
+      "line": null,
+      "category": "security",
+      "description": "A downstream root project that explicitly pins 'symfony/http-foundation: ^6.4.0' would defeat this library's ^6.4.29 require. Adding 'conflict: { symfony/http-foundation: <6.4.29 }' survives transitive resolution more robustly.",
+      "recommendation": "Optional: add conflict block on symfony/http-foundation <6.4.29 (and maybe <5.4.50 || <7.1.7 for belt-and-suspenders across all patched lines)."
+    },
+    {
+      "issue_id": "f4",
+      "title": "Over-pinning property-access + dom-crawler to same floor as http-foundation",
+      "severity": "low",
+      "status": "open",
+      "source": "ai",
+      "author": "security-sentinel + code-simplicity-reviewer",
+      "scope": "in_scope",
+      "file": "composer.json",
+      "line": 13,
+      "category": "simplicity",
+      "description": "Only http-foundation has CVEs. Pinning the other two to ^6.4.29 is stricter than required. The plan explicitly chose lockstep to avoid resolver dead-ends with mismatched-minor siblings; agents flag this as a judgment call worth documenting.",
+      "recommendation": "Acceptable as-is given plan rationale. Optional: relax property-access and dom-crawler to ^6.4 (not ^6.4.29) since they carry no CVE. Document lockstep decision in commit body."
+    },
+    {
+      "issue_id": "f5",
+      "title": "^6.4.29 precision may be tighter than needed (^6.4 is equivalent at install time)",
+      "severity": "low",
+      "status": "open",
+      "source": "ai",
+      "author": "code-simplicity-reviewer",
+      "scope": "in_scope",
+      "file": "composer.json",
+      "line": 14,
+      "category": "simplicity",
+      "description": "^6.4 already resolves to latest 6.4.x on install, which is >=6.4.29 today. Pinning to .29 specifically adds no security value (composer install always picks highest matching) and ages poorly.",
+      "recommendation": "Accept as-is (defensive and zero-cost) OR relax to ^6.4. Either is fine."
+    },
+    {
+      "issue_id": "f6",
+      "title": "Undeclared transitive Symfony deps (browser-kit, event-dispatcher, config, dependency-injection)",
+      "severity": "low",
+      "status": "open",
+      "source": "ai",
+      "author": "architecture-strategist",
+      "scope": "out_of_scope",
+      "file": null,
+      "line": null,
+      "category": "architecture",
+      "description": "Pre-existing smell: behatch uses symfony/browser-kit etc. via Mink but does not declare them in require/require-dev. Out of scope for PR1; should be addressed in PR2's modernization.",
+      "recommendation": "Defer to PR2. Already tracked in the plan's PR2 composer.json rewrite (adds symfony/browser-kit and symfony/http-client explicitly)."
+    },
+    {
+      "issue_id": "f7",
+      "title": "Commit message + PR body are verbose for a 6-line diff",
+      "severity": "low",
+      "status": "open",
+      "source": "ai",
+      "author": "code-simplicity-reviewer",
+      "scope": "out_of_scope",
+      "file": null,
+      "line": null,
+      "category": "process",
+      "description": "24-line commit message and long PR body for a 6-line change. The context is useful for the three-PR phased approach, but could be argued as over-communication.",
+      "recommendation": "Accept — the verbosity buys auditability for a security fix and doesn't harm anything. No action."
+    },
+    {
+      "issue_id": "f8",
+      "title": "Meta: process bloat risk — 20k-line investigation preceding a 6-line fix",
+      "severity": "low",
+      "status": "open",
+      "source": "ai",
+      "author": "code-simplicity-reviewer",
+      "scope": "out_of_scope",
+      "file": null,
+      "line": null,
+      "category": "process",
+      "description": "Simplicity reviewer flags that a Dependabot alert with a known fix version could have been addressed with 'composer require' + test rather than a full brainstorm/plan/deepen pipeline. Meta-observation about effort-to-blast-radius calibration.",
+      "recommendation": "Accept as context: the investigation also produced PR2+PR3 roadmaps, which are the actual deliverables. PR1 is the trivial prefix of a larger modernization. Useful feedback for future cases where the underlying change is truly standalone."
+    }
+  ]
+}
